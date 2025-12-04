@@ -210,7 +210,7 @@ class PDFToFlashcardPipeline:
             print(f"❌ Error generating quiz: {e}")
             return []
 
-    def save_outputs(self, flashcards: List[Dict[str, str]], quiz_questions: List[Dict] = None) -> bool:
+    def save_outputs(self, flashcards: List[Dict[str, str]], quiz_questions: List[Dict] = None):
         """
         Save flashcards, quiz, and summary to output folder.
 
@@ -219,7 +219,7 @@ class PDFToFlashcardPipeline:
             quiz_questions: List of quiz questions to save (optional)
 
         Returns:
-            True if successful, False otherwise
+            List of saved file paths (Path objects)
         """
         try:
             generator = FlashcardGenerator(
@@ -234,7 +234,7 @@ class PDFToFlashcardPipeline:
             generator.save_flashcards(flashcards, output_file=str(output_file))
 
             # Save quiz if provided
-            saved_files = [output_file.name]
+            saved_files = [output_file]
             if quiz_questions:
                 quiz_gen = QuizGenerator(
                     db_path=self.db_path,
@@ -245,13 +245,13 @@ class PDFToFlashcardPipeline:
 
                 quiz_file = self.output_dir / f"quiz_{self.timestamp}.json"
                 quiz_gen.save_quiz(quiz_questions, output_file=str(quiz_file))
-                saved_files.append(quiz_file.name)
+                saved_files.append(quiz_file)
 
                 answer_key_file = self.output_dir / \
                     f"answer_key_{self.timestamp}.txt"
                 quiz_gen.generate_answer_key(
                     quiz_questions, output_file=str(answer_key_file))
-                saved_files.append(answer_key_file.name)
+                saved_files.append(answer_key_file)
 
                 student_quiz_file = self.output_dir / \
                     f"quiz_student_{self.timestamp}.txt"
@@ -262,23 +262,23 @@ class PDFToFlashcardPipeline:
                     quiz_gen.display_quiz_student_view(quiz_questions)
                 with open(student_quiz_file, "w", encoding="utf-8") as f:
                     f.write(buffer.getvalue())
-                saved_files.append(student_quiz_file.name)
+                saved_files.append(student_quiz_file)
 
             # Save summary
             summary_file = self.output_dir / f"summary_{self.timestamp}.txt"
             self._save_summary(summary_file, len(flashcards), len(
                 quiz_questions) if quiz_questions else 0)
-            saved_files.append(summary_file.name)
+            saved_files.append(summary_file)
 
             print(f"\n📁 Output files saved to: {self.output_dir}")
-            for file_name in saved_files:
-                print(f"   - {file_name}")
+            for file_path in saved_files:
+                print(f"   - {file_path.name}")
 
-            return True
+            return saved_files
 
         except Exception as e:
             print(f"❌ Error saving outputs: {e}")
-            return False
+            return []
 
     def _save_summary(self, file_path: Path, num_flashcards: int, num_quiz_questions: int = 0):
         """

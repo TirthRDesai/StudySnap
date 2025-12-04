@@ -1,5 +1,9 @@
-PyPDF2
+pypdf
 langdetect
 supabase
 python-dotenv
-google-genai
+lancedb
+ollama
+pandas
+fastapi
+uvicorn[standard]
