@@ -12,12 +12,13 @@ from supabase_utils import (
     fetch_document_file,
     get_supabase_client,
     upload_generated_outputs,
+    jobs
 )
 
 app = FastAPI(title="StudySnapAI")
 
 
-def _process_file_job(file_id: str, include_quiz: bool = True):
+def _process_file_job(file_id: str, job_id: str, include_quiz: bool = True):
     """Background job to download a PDF from Supabase, run the pipeline, and upload outputs."""
     client = get_supabase_client()
     record = fetch_document_file(client, file_id)
@@ -26,10 +27,14 @@ def _process_file_job(file_id: str, include_quiz: bool = True):
     storage_key = record["storage_key"]
     original_name = record.get("original_name") or f"{file_id}.pdf"
 
+    jobs.add_job(job_id=job_id, status="pending", file_id=document_id)
     temp_dir = Path(tempfile.mkdtemp(prefix="studysnap_"))
     local_pdf = temp_dir / original_name
 
     try:
+
+        jobs.update_job_status(job_id=job_id, status="reading")
+
         download_document_file(client, storage_key, local_pdf)
 
         pipeline = PDFToFlashcardPipeline(pdf_path=str(local_pdf))
@@ -38,21 +43,37 @@ def _process_file_job(file_id: str, include_quiz: bool = True):
         if not pipeline.process_pdf():
             raise RuntimeError("Failed during PDF processing")
 
+        jobs.update_job_status(job_id=job_id, status="flashcards")
         flashcards = pipeline.generate_flashcards()
         if not flashcards:
             raise RuntimeError("No flashcards generated")
 
+        jobs.update_job_status(job_id=job_id, status="quizzes")
         quiz_questions: List = []
         if include_quiz:
             quiz_questions = pipeline.generate_quiz()
 
+        jobs.update_job_status(job_id=job_id, status="completed")
         output_files = pipeline.save_outputs(
             flashcards, quiz_questions if quiz_questions else None
         )
         if not output_files:
             raise RuntimeError("No outputs were saved")
 
-        upload_generated_outputs(client, str(document_id), output_files)
+        uploaded_keys = upload_generated_outputs(
+            client, str(document_id), output_files)
+
+        # Remove the outputs after upload
+        pipeline.remove_outputs(output_files)
+
+        print("==================================================\n\n")
+
+        print(f"Uploaded generated outputs: {uploaded_keys}")
+
+        print("\n\n==================================================")
+    except Exception as e:
+        jobs.update_job_status(job_id=job_id, status="failed")
+        print(f"Error processing file {file_id} for job {job_id}: {e}")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -69,7 +90,7 @@ async def process_file(file_id: str, include_quiz: bool = True, background_tasks
         raise HTTPException(status_code=400, detail="file_id is required")
 
     job_id = str(uuid.uuid4())
-    background_tasks.add_task(_process_file_job, file_id, include_quiz)
+    background_tasks.add_task(_process_file_job, file_id, job_id, include_quiz)
 
     return {
         "job_id": job_id,

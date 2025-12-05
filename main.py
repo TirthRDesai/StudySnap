@@ -3,6 +3,7 @@ Main script to read PDF, process it, and generate flashcards.
 Outputs are saved to the 'output' folder.
 """
 
+from dotenv import load_dotenv
 import json
 from typing import List, Dict
 import os
@@ -280,6 +281,21 @@ class PDFToFlashcardPipeline:
             print(f"❌ Error saving outputs: {e}")
             return []
 
+    def remove_outputs(self, output_files: List[Path]):
+        """
+        Remove output files from local storage.
+
+        Args:
+            output_files: List of file Paths to remove
+        """
+        for file_path in output_files:
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+                    print(f"🗑️  Removed file: {file_path.name}")
+            except Exception as e:
+                print(f"⚠️  Could not remove file {file_path.name}: {e}")
+
     def _save_summary(self, file_path: Path, num_flashcards: int, num_quiz_questions: int = 0):
         """
         Save a summary of the generation process.
@@ -364,30 +380,13 @@ Configuration:
         return True
 
 
-if __name__ == "__main__":
-    # Create pipeline with default configuration
-    pipeline = PDFToFlashcardPipeline()
+# Configure if needed (Ollama in a different location, etc.)
+# Load environment variables from .env
+load_dotenv()
 
-    # Run the complete pipeline with quiz generation
-    # Set include_quiz=False if you only want flashcards
-    pipeline.run(include_quiz=True)
-
-    # Optionally, you can also use custom configuration:
-    # pipeline = PDFToFlashcardPipeline(
-    #     pdf_path="path/to/your/pdf.pdf",
-    #     embedding_model="mxbai-embed-large",
-    #     generation_model="llama3",
-    #     chunk_size=500,
-    #     chunk_overlap=100,
-    #     k_chunks=5,
-    #     num_flashcards_per_chunk=10,
-    #     num_quiz_questions=10
-    # )
-    # pipeline.run(include_quiz=True)
-
-# Configure Ollama environment with custom models directory
-OLLAMA_BIN = r"C:\Users\tirth\AppData\Local\Programs\Ollama\ollama.exe"
-OLLAMA_MODELS_DIR = r"D:\OllamaModels"
+# Configure Ollama environment
+OLLAMA_BIN = os.getenv('OLLAMA_BIN')
+OLLAMA_MODELS_DIR = os.getenv('OLLAMA_MODELS_DIR')
 
 # Set environment variables
 os.environ['OLLAMA_HOME'] = OLLAMA_MODELS_DIR
