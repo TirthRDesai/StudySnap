@@ -6,7 +6,7 @@ status_types = ["pending", "reading",
                 "flashcards", "quizzes", "completed", "failed"]
 
 
-def add_job(job_id: str, status: str, file_id: str):
+def add_job(job_id: str, status: str, file_id: str, email: str):
     """Add a new job record to the Supabase 'jobs' table."""
 
     if (status not in status_types):
@@ -16,6 +16,7 @@ def add_job(job_id: str, status: str, file_id: str):
         "job_id": job_id,
         "status": status,
         "document_id": file_id,
+        "email": email,
     }
 
     try:

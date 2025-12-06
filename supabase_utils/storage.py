@@ -52,26 +52,27 @@ def _detect_bucket_for_output(filename: str) -> Optional[str]:
     return None
 
 
-def upload_generated_outputs(client: Client, document_id: str, files: List[Path]) -> List[str]:
+def upload_generated_outputs(client: Client, email: str, files: List[Path], original_name: str) -> List[str]:
     """
     Upload generated output files to their respective buckets.
 
     Args:
         client: Supabase client
-        document_id: documents.id to namespace objects
+        email: user's email to namespace objects
         files: List of file Paths to upload
 
     Returns:
         List of storage keys that were uploaded.
     """
     uploaded_keys: List[str] = []
+
     for file_path in files:
         bucket = _detect_bucket_for_output(file_path.name)
         if not bucket:
             # Skip unknown files instead of failing the whole upload
             continue
 
-        storage_key = f"{document_id}/{file_path.name}"
+        storage_key = f"{email}/{file_path.name}"
         client.storage.from_(bucket).upload(
             storage_key,
             file_path.read_bytes(),

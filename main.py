@@ -211,7 +211,7 @@ class PDFToFlashcardPipeline:
             print(f"❌ Error generating quiz: {e}")
             return []
 
-    def save_outputs(self, flashcards: List[Dict[str, str]], quiz_questions: List[Dict] = None):
+    def save_outputs(self, flashcards: List[Dict[str, str]], quiz_questions: List[Dict] = None, namespace: str = "output") -> List[Path]:
         """
         Save flashcards, quiz, and summary to output folder.
 
@@ -231,7 +231,7 @@ class PDFToFlashcardPipeline:
             )
 
             # Save flashcards to output folder
-            output_file = self.output_dir / f"flashcards_{self.timestamp}.json"
+            output_file = self.output_dir / f"flashcards_{namespace}.json"
             generator.save_flashcards(flashcards, output_file=str(output_file))
 
             # Save quiz if provided
@@ -244,12 +244,12 @@ class PDFToFlashcardPipeline:
                     generation_model=self.generation_model
                 )
 
-                quiz_file = self.output_dir / f"quiz_{self.timestamp}.json"
+                quiz_file = self.output_dir / f"quiz_{namespace}.json"
                 quiz_gen.save_quiz(quiz_questions, output_file=str(quiz_file))
                 saved_files.append(quiz_file)
 
                 answer_key_file = self.output_dir / \
-                    f"answer_key_{self.timestamp}.txt"
+                    f"answer_key_{namespace}.txt"
                 quiz_gen.generate_answer_key(
                     quiz_questions, output_file=str(answer_key_file))
                 saved_files.append(answer_key_file)
@@ -266,7 +266,7 @@ class PDFToFlashcardPipeline:
                 saved_files.append(student_quiz_file)
 
             # Save summary
-            summary_file = self.output_dir / f"summary_{self.timestamp}.txt"
+            summary_file = self.output_dir / f"summary_{namespace}.txt"
             self._save_summary(summary_file, len(flashcards), len(
                 quiz_questions) if quiz_questions else 0)
             saved_files.append(summary_file)
