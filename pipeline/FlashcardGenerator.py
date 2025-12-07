@@ -88,8 +88,6 @@ class FlashcardGenerator:
         flashcards = []
 
         for i, chunk in enumerate(chunks):
-            print(f"Generating flashcards from chunk {i+1}/{len(chunks)}...")
-
             # Create a prompt for flashcard generation
             prompt = f"""
 Based on the following text, create exactly {num_cards} flashcards in JSON format.
@@ -238,24 +236,3 @@ JSON Array:
             print(f"✅ Saved {len(flashcards)} flashcards to {output_file}")
         except Exception as e:
             print(f"Error saving flashcards: {e}")
-
-    def display_flashcards(self, flashcards: List[Dict[str, str]]):
-        """
-        Display flashcards in a readable format.
-
-        Args:
-            flashcards: List of flashcards to display
-        """
-        if not flashcards:
-            print("No flashcards to display.")
-            return
-
-        print("\n" + "="*60)
-        print(f"Generated {len(flashcards)} Flashcards")
-        print("="*60)
-
-        for i, card in enumerate(flashcards, 1):
-            print(f"\nCard {i}:")
-            print(f"  Q: {card.get('question', 'N/A')}")
-            print(f"  A: {card.get('answer', 'N/A')}")
-        print("\n" + "="*60)

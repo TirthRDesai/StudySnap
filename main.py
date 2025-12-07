@@ -25,11 +25,9 @@ class PDFToFlashcardPipeline:
     """
 
     # ---------- CONFIG ----------
-    PDF_PATH = "Tests/test.pdf"                      # path to your uploaded book
     EMBEDDING_MODEL = "mxbai-embed-large:latest"            # Ollama embedding model
     GENERATION_MODEL = "llama3:8b"                      # Ollama generation model
     DB_PATH = "./chunks-storage"                     # folder for LanceDB
-    TABLE_NAME = "book_chunks"                       # LanceDB table name
     CHUNK_SIZE = 400                                 # words per chunk
     CHUNK_OVERLAP = 80                               # overlapping words between chunks
     # number of chunks to retrieve per query
@@ -44,11 +42,11 @@ class PDFToFlashcardPipeline:
 
     def __init__(
         self,
-        pdf_path: str = None,
+        table_name: str,
+        pdf_path: str,
         embedding_model: str = None,
         generation_model: str = None,
         db_path: str = None,
-        table_name: str = None,
         chunk_size: int = None,
         chunk_overlap: int = None,
         k_chunks: int = None,
@@ -158,11 +156,6 @@ class PDFToFlashcardPipeline:
                     num_cards=self.num_flashcards_per_chunk
                 )
                 all_flashcards.extend(flashcards)
-
-            print(f"\n✅ Generated {len(all_flashcards)} total flashcards!\n")
-
-            # Display flashcards
-            generator.display_flashcards(all_flashcards)
 
             return all_flashcards
 

@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 
-def _process_file_job(file_id: str, job_id: str, email: str, userId: str, include_quiz: bool = True):
+def _process_file_job(file_id: str, job_id: str, email: str, userId: str, include_quiz: bool = True, test: bool = False):
     """Background job to download a PDF from Supabase, run the pipeline, and upload outputs."""
     client = get_supabase_client()
     record = fetch_document_file(client, file_id)
@@ -36,7 +36,6 @@ def _process_file_job(file_id: str, job_id: str, email: str, userId: str, includ
     storage_key = record["storage_key"]
     original_name = record.get("original_name") or f"{file_id}.pdf"
 
-    print(f"original_name: {original_name}")
     namespace = original_name.rsplit(".", 1)[0]
 
     jobs.add_job(job_id=job_id, status="pending",
@@ -48,9 +47,16 @@ def _process_file_job(file_id: str, job_id: str, email: str, userId: str, includ
 
         jobs.update_job_status(job_id=job_id, status="reading")
 
-        download_document_file(client, storage_key, local_pdf)
+        fp = download_document_file(client, storage_key, local_pdf)
 
-        pipeline = PDFToFlashcardPipeline(pdf_path=str(local_pdf))
+        print("="*70)
+        print("\n\n")
+        print("File Downloaded at " + str(fp))
+        print("\n\n")
+        print("="*70)
+
+        pipeline = PDFToFlashcardPipeline(
+            pdf_path=str(local_pdf), table_name=namespace)
 
         # Run the pipeline steps
         if not pipeline.process_pdf():
@@ -114,7 +120,7 @@ async def process_file(file_id: str, email: str, userId: str, include_quiz: bool
 
     job_id = str(uuid.uuid4())
     background_tasks.add_task(
-        _process_file_job, file_id, job_id, email, userId, include_quiz)
+        _process_file_job, file_id, job_id, email, userId, include_quiz, True)
 
     return {
         "jobId": job_id,
