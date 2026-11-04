@@ -1,9 +1,0 @@
-pypdf
-langdetect
-supabase
-python-dotenv
-lancedb
-ollama
-pandas
-fastapi
-uvicorn[standard]

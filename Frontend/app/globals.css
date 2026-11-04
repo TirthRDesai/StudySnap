@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --line: #e7e4dc;
+  --ink: #1b1a17;
+  --muted: #6b675d;
+  --accent: #2f4bd8;
+  --accent-ink: #ffffff;
+  --ok: #15803d;
+  --bad: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1f1d;
+    --surface: #262624;
+    --line: #363531;
+    --ink: #d2cfc7;
+    --muted: #96928a;
+    --accent: #8ba0ff;
+    --accent-ink: #0f1330;
+    --ok: #4ade80;
+    --bad: #f87171;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition hover:border-muted disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-accent bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition focus:border-accent;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-muted;
+  }
+}
+
+/* Rendered markdown (explainer) */
+.prose-md {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+.prose-md strong {
+  font-weight: 600;
+}
+.prose-md > * + * {
+  margin-top: 0.9em;
+}
+.prose-md h1,
+.prose-md h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.6em;
+}
+.prose-md h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.4em;
+}
+.prose-md ul {
+  list-style: disc;
+  padding-left: 1.4em;
+}
+.prose-md ol {
+  list-style: decimal;
+  padding-left: 1.4em;
+}
+.prose-md li + li {
+  margin-top: 0.3em;
+}
+.prose-md blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--muted);
+}
+.prose-md code {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.9em;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+.prose-md pre {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  line-height: 1.55;
+}
+.prose-md pre code {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  white-space: pre;
+}
+
+.flip {
+  perspective: 1400px;
+}
+.flip-inner {
+  position: relative;
+  transition: transform 0.45s;
+  transform-style: preserve-3d;
+}
+.flip-inner[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-inner {
+    transition: none;
+  }
+}
